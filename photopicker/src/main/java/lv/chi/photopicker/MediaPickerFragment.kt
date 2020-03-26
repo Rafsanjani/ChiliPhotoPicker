@@ -46,7 +46,7 @@ import lv.chi.photopicker.utils.SpacingItemDecoration
 
 class MediaPickerFragment : DialogFragment() {
 
-    private var listener: () -> Unit = {}
+    private var listener: () -> Boolean = {false}
     private lateinit var mediaAdapter: MediaPickerAdapter
 
     private lateinit var vm: PickerViewModel
@@ -119,9 +119,10 @@ class MediaPickerFragment : DialogFragment() {
                         pickVideoGallery()
                 }
                 camera_container.setOnClickListener {
-                    listener()
-                    dismiss()
-//                    pickMediaCamera()
+                    if (listener())
+                        dismiss()
+                    else
+                        pickMediaCamera()
                 }
                 findViewById<TextView>(R.id.grant).setOnClickListener { grantPermissions() }
 
@@ -405,7 +406,7 @@ class MediaPickerFragment : DialogFragment() {
         PHOTO
     }
 
-    fun setOnCameraClickListener(listener: () -> Unit) : MediaPickerFragment {
+    fun setOnCameraClickListener(listener: () -> Boolean) : MediaPickerFragment {
         this.listener = listener
         return this
     }
