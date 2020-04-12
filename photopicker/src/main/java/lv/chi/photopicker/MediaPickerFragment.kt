@@ -60,6 +60,8 @@ class MediaPickerFragment : DialogFragment() {
 
     private lateinit var pickerType: PickerType
 
+    private var cameraClicked: () -> Boolean = { false }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -119,13 +121,18 @@ class MediaPickerFragment : DialogFragment() {
                         PickerType.ANY -> pickAnyGallery()
                     }
                 }
-                camera_container.setOnClickListener { pickMediaCamera() }
+
+                camera_container.setOnClickListener {
+                    if (!cameraClicked())
+                        pickMediaCamera()
+                }
+
                 findViewById<TextView>(R.id.grant).setOnClickListener { grantPermissions() }
 
                 pickerBottomSheetCallback.setMargin(
-                    requireContext().resources.getDimensionPixelSize(
-                        cornerRadiusOutValue.resourceId
-                    )
+                        requireContext().resources.getDimensionPixelSize(
+                                cornerRadiusOutValue.resourceId
+                        )
                 )
             }
 
@@ -455,6 +462,11 @@ class MediaPickerFragment : DialogFragment() {
         ANY
     }
 
+    fun setOnCameraClickListener(listener: () -> Boolean): MediaPickerFragment {
+        cameraClicked = listener
+        return this
+    }
+
     companion object {
         private const val KEY_MULTIPLE = "KEY_MULTIPLE"
         private const val KEY_ALLOW_CAMERA = "KEY_ALLOW_CAMERA"
@@ -462,28 +474,31 @@ class MediaPickerFragment : DialogFragment() {
         private const val KEY_MAX_SELECTION = "KEY_MAX_SELECTION"
         private const val KEY_PICKER_MODE = "KEY_PICKER_MODE"
 
+
         fun newInstance(
-            multiple: Boolean = false,
-            allowCamera: Boolean = false,
-            maxSelection: Int = SELECTION_UNDEFINED,
-            pickerType: PickerType = PickerType.PHOTO,
-            @StyleRes theme: Int = R.style.ChiliPhotoPicker_Light
+                multiple: Boolean = false,
+                allowCamera: Boolean = false,
+                maxSelection: Int = SELECTION_UNDEFINED,
+                pickerType: PickerType = PickerType.PHOTO,
+                @StyleRes theme: Int = R.style.ChiliPhotoPicker_Light
         ) = MediaPickerFragment().apply {
+
             arguments = bundleOf(
-                KEY_MULTIPLE to multiple,
-                KEY_ALLOW_CAMERA to allowCamera,
-                KEY_MAX_SELECTION to maxSelection,
-                KEY_THEME to theme,
-                KEY_PICKER_MODE to pickerType
+                    KEY_MULTIPLE to multiple,
+                    KEY_ALLOW_CAMERA to allowCamera,
+                    KEY_MAX_SELECTION to maxSelection,
+                    KEY_THEME to theme,
+                    KEY_PICKER_MODE to pickerType
             )
         }
+
 
         private fun getTheme(args: Bundle) = args.getInt(KEY_THEME)
         private fun getAllowCamera(args: Bundle) = args.getBoolean(KEY_ALLOW_CAMERA)
         private fun getAllowMultiple(args: Bundle) = args.getBoolean(KEY_MULTIPLE)
         private fun getMaxSelection(args: Bundle) = args.getInt(KEY_MAX_SELECTION)
         private fun getPickerMode(args: Bundle) =
-            args.getSerializable(KEY_PICKER_MODE) as PickerType
+                args.getSerializable(KEY_PICKER_MODE) as PickerType
     }
 
     interface Callback {
