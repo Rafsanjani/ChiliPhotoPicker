@@ -34,8 +34,8 @@ internal class CameraActivity : AppCompatActivity() {
         } else permissionGranted = true
 
         if (savedInstanceState == null) {
-            output = provideImageUri()
-            if (permissionGranted) requestImageCapture()
+            output = if (captureMode == CaptureMode.Photo) provideImageUri() else provideVideoUri()
+            if (permissionGranted) requestMediaCapture()
             else {
                 ActivityCompat.requestPermissions(
                     this,
@@ -68,7 +68,7 @@ internal class CameraActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == Request.CAMERA_ACCESS_PERMISSION && hasCameraPermission()) {
             permissionGranted = true
-            requestImageCapture()
+            requestMediaCapture()
         } else onBackPressed()
     }
 
@@ -84,23 +84,34 @@ internal class CameraActivity : AppCompatActivity() {
         .apply { deleteOnExit() }
         .providerUri(this)
 
-    private fun requestImageCapture() =
-        startActivityForResult(
-            if (captureMode == CaptureMode.Photo)
-                Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-            else
-                Intent(
-                    MediaStore.ACTION_VIDEO_CAPTURE
-                ).putExtra(MediaStore.EXTRA_OUTPUT, output)
-                    .also { intent ->
-                        grantUriPermission(
-                            intent.resolveActivity(packageManager).packageName,
-                            output,
-                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                        )
-                    },
-            Request.MEDIA_CAPTURE
-        )
+    private fun provideVideoUri() = createTempFile(
+        suffix = ".mp4",
+        directory = File(this.cacheDir, "camera").apply { mkdirs() }
+    )
+        .apply { deleteOnExit() }
+        .providerUri(this)
+
+    private fun requestMediaCapture() {
+        val cameraIntent = if (captureMode == CaptureMode.Photo)
+            Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        else
+            Intent(
+                MediaStore.ACTION_VIDEO_CAPTURE
+            )
+
+        cameraIntent.also { intent ->
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, output)
+
+            grantUriPermission(
+                intent.resolveActivity(packageManager).packageName,
+                output,
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+
+            startActivityForResult(cameraIntent, Request.MEDIA_CAPTURE)
+        }
+    }
+
 
     private fun hasCameraPermission() = ContextCompat.checkSelfPermission(
         this,
