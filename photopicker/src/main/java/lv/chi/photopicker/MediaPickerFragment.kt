@@ -46,6 +46,7 @@ import lv.chi.photopicker.utils.SpacingItemDecoration
 
 class MediaPickerFragment : DialogFragment() {
 
+    private var callback: Callback? = null
     private lateinit var mediaAdapter: MediaPickerAdapter
 
     private lateinit var vm: PickerViewModel
@@ -189,6 +190,7 @@ class MediaPickerFragment : DialogFragment() {
                 if (resultCode == Activity.RESULT_OK) {
                     Intents.getUriResult(data)?.let {
                         parentAs<Callback>()?.onMediaPicked(it)
+                        callback?.onMediaPicked(it)
                         dismiss()
                     }
                 }
@@ -464,6 +466,11 @@ class MediaPickerFragment : DialogFragment() {
 
     fun setOnCameraClickListener(listener: () -> Boolean): MediaPickerFragment {
         cameraClicked = listener
+        return this
+    }
+
+    fun setOnMediaPickedListener(callback: Callback): MediaPickerFragment {
+        this.callback = callback
         return this
     }
 
