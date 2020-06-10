@@ -55,7 +55,7 @@ internal class MediaPickerAdapter(
 
                 MediaMetadataRetriever().apply {
                     setDataSource(context, video.uri)
-                    val videoLength = extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION).toLong()
+                    val videoLength = extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong()!!
 
                     duration.text = getDurationString(videoLength)
                     release()
